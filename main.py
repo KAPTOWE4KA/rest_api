@@ -39,12 +39,12 @@ token = 'MY_TOKEN'
 session = requests.Session()
 session.auth = ('DanteOnline', token)
 
-result = session.get('https://api.github.com/search/code?q=eval+in:file+language:python+user:DanteOnline')
+result = session.get('https://api.github.com/search/code?q=print+in:file+language:python+user:KAPTOWE4KA')
 print(result.status_code)
 items = result.json()['items']
 
 for item in items:
     if not item['path'].startswith('venv'):
-        pprint.pprint(item)
+        pprint.pprint(item['repository']['full_name'])
 
 
