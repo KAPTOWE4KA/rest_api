@@ -42,7 +42,7 @@ user = 'KAPTOWE4KA'
 user = 'DanteOnline'
 search_keywords = ['eval', 'sqllite3', 'pickle', 'login', 'mail', 'password']
 
-url = 'https://api.github.com/search/code?q=eval+language:python+in:file+user:DanteOnline'
+url = 'https://api.github.com/search/code?q=eval+in:file+language:python+user:DanteOnline'
 
 result = session.get(url)
 print("Searching: "+str(result.status_code))
