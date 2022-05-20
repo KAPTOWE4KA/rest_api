@@ -2,6 +2,9 @@
 
 import requests
 import pprint
+import json
+
+token_needed = False
 
 # Получение репозиториев
 
@@ -27,24 +30,43 @@ import pprint
 # https://api.github.com/search/code?q=addClass+in:file+language:js+repo:jquery/jquery
 
 # Авторизация
-token = 'MY_TOKEN'
-# 1.
-# result = requests.get('https://api.github.com/search/code?q=addClass+in:file+language:js+repo:jquery/jquery', auth=('DanteOnline', token))
-# 2.
-# headers = {
-#     'Authorization': f'token {token}'
-# }
-# result = requests.get('https://api.github.com/search/code?q=addClass+in:file+language:js+repo:jquery/jquery', headers=headers)
-
 session = requests.Session()
-session.auth = ('DanteOnline', token)
+if token_needed:
+    token_file = open("token.txt", "r", encoding="utf-8")
+    token = str(token_file.readline())
+    if len(token) > 2:
+        print("Token used")
+        session.auth = ('KAPTOWE4KA', token)
 
-result = session.get('https://api.github.com/search/code?q=print+in:file+language:python+user:KAPTOWE4KA')
-print(result.status_code)
+user = 'KAPTOWE4KA'
+user = 'DanteOnline'
+search_keywords = ['eval', 'sqllite3', 'pickle', 'login', 'mail', 'password']
+
+url = 'https://api.github.com/search/code?q=eval+language:python+in:file+user:DanteOnline'
+
+result = session.get(url)
+print("Searching: "+str(result.status_code))
 items = result.json()['items']
+if len(items) < 1:
+    print("No repos found with current parameters. Printing response json:")
+    pprint.pprint(result.json())
+    exit(1)
 
 for item in items:
     if not item['path'].startswith('venv'):
-        pprint.pprint(item['repository']['full_name'])
+        pprint.pprint(item['name'])
+        pprint.pprint(item['repository']['full_name'].__str__()+"/"+item['path'].__str__())
+        file_path_url = item['repository']['contents_url'].__str__().replace("{+path}", item['path'])
+        pprint.pprint(file_path_url)
 
 
+
+result = session.get(file_path_url)
+print(result.status_code)
+item = result.json()
+pprint.pprint(item['download_url'])
+result = session.get(item['download_url'])
+print(result.text)
+
+#file1 = open("newfile.py", "w", encoding="utf-8")
+#file1.write(result.text)
