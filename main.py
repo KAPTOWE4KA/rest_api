@@ -5,6 +5,7 @@ import pprint
 import json
 
 token_needed = False
+user = 'KAPTOWE4KA'
 
 # Получение репозиториев
 
@@ -36,28 +37,29 @@ if token_needed:
     token = str(token_file.readline())
     if len(token) > 2:
         print("Token used")
-        session.auth = ('KAPTOWE4KA', token)
+        session.auth = (user, token)
 
-user = 'KAPTOWE4KA'
-user = 'DanteOnline'
-search_keywords = ['eval', 'sqllite3', 'pickle', 'login', 'mail', 'password']
 
-url = 'https://api.github.com/search/code?q=eval+in:file+language:python+user:KAPTOWE4KA'
+search_keywords = ['eval', 'sql', 'pickle', 'login', 'mail', 'password']
 
-result = session.get(url)
-print("Searching: "+str(result.status_code))
-items = result.json()['items']
-if len(items) < 1:
-    print("No repos found with current parameters. Printing response json:")
-    pprint.pprint(result.json())
-    exit(1)
 
-for item in items:
-    if not item['path'].startswith('venv'):
-        pprint.pprint(item['name'])
-        pprint.pprint(item['repository']['full_name'].__str__()+"/"+item['path'].__str__())
-        file_path_url = item['repository']['contents_url'].__str__().replace("{+path}", item['path'])
-        pprint.pprint(file_path_url)
+for keywd in search_keywords:
+    url = f'https://api.github.com/search/code?q="{keywd}"+in:file+language:python+user:{user}'
+    #https://api.github.com/search/code?q=%22EMAIL_HOST_USER%22+in:file+language:python+user:KAPTOWE4KA
+    search_result = session.get(url)
+    print("Searching: " + str(search_result.status_code))
+    items = search_result.json()['items']
+    if search_result.json()['total_count'] == 0:
+        print("No repos found with current parameters. Printing response json:")
+        pprint.pprint(search_result.json())
+        print(f"Уязвимостей связанных с {keywd} не обнаружено в репозиториях пользователя {user}")
+    else:
+        for item in items:
+            if not item['path'].startswith('venv'):
+                print(""+str(item['name']))
+                pprint.pprint(item['repository']['full_name'].__str__()+"/"+item['path'].__str__())
+                file_path_url = item['repository']['contents_url'].__str__().replace("{+path}", item['path'])
+                pprint.pprint(file_path_url)
 
 
 
