@@ -42,7 +42,7 @@ user = 'KAPTOWE4KA'
 user = 'DanteOnline'
 search_keywords = ['eval', 'sqllite3', 'pickle', 'login', 'mail', 'password']
 
-url = 'https://api.github.com/search/code?q=eval+in:file+language:python+user:DanteOnline'
+url = 'https://api.github.com/search/code?q=eval+in:file+language:python+user:KAPTOWE4KA'
 
 result = session.get(url)
 print("Searching: "+str(result.status_code))
@@ -61,12 +61,12 @@ for item in items:
 
 
 
-result = session.get(file_path_url)
-print(result.status_code)
-item = result.json()
-pprint.pprint(item['download_url'])
-result = session.get(item['download_url'])
-print(result.text)
+#result = session.get(file_path_url)
+#print(result.status_code)
+#item = result.json()
+#pprint.pprint(item['download_url'])
+#result = session.get(item['download_url'])
+#print(result.text)
 
 #file1 = open("newfile.py", "w", encoding="utf-8")
 #file1.write(result.text)
