@@ -53,7 +53,7 @@ user = 'KAPTOWE4KA'
 
 # Авторизация
 session = requests.Session()
-if token_needed:
+if token_needed:#token_needed поставил в False так как с токеном не работает api.github
     token_file = open("token.txt", "r", encoding="utf-8")
     token = str(token_file.readline())
     if len(token) > 2:
@@ -189,19 +189,86 @@ for keywd in unsafe_repos.keys():
                 time.sleep(0.5)
                 result = session.get(unsafe_repos[keywd][repos][file_key])  # download_url to variable
                 code_lines = result.text.split('\n')
-                eval_argument = ""
                 for line in code_lines:
-                    if "pickle.load(" in line:
-                        eval_argument = split2(line.split('pickle.load'), '(', ')')
-                        if is_input_variable(eval_argument, code_lines) or "input(" in line:
+                    if keywd in line and "=" in line and ("\"" in line or "\'" in line):
+                        analysis_dict[f"https://github.com/{user}/{repos}"]['unsafe_modules'].append(
+                            {'name': file_key,
+                             'unsafe code type': f'В коде явно указано поле {keywd}',
+                             'status': 'Содержит уязвимость'})
+
+    elif keywd in ['EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD']:
+        for repos in unsafe_repos[keywd].keys():
+            if f"https://github.com/{user}/{repos}" not in analysis_dict.keys():
+                analysis_dict[f"https://github.com/{user}/{repos}"] = {'words': [], 'unsafe_modules': []}
+
+            if 'python' not in analysis_dict[f"https://github.com/{user}/{repos}"]['words']:
+                analysis_dict[f"https://github.com/{user}/{repos}"]['words'].append('python')
+            if 'django' not in analysis_dict[f"https://github.com/{user}/{repos}"]['words']:
+                analysis_dict[f"https://github.com/{user}/{repos}"]['words'].append('django')
+
+            for file_key in unsafe_repos[keywd][repos].keys():
+                time.sleep(0.5)
+                result = session.get(unsafe_repos[keywd][repos][file_key])  # download_url to variable
+                code_lines = result.text.split('\n')
+                for line in code_lines:
+                    if keywd in line:
+                        analysis_dict[f"https://github.com/{user}/{repos}"]['unsafe_modules'].append(
+                            {'name': file_key,
+                             'unsafe code type': f'В коде явно указано поле {keywd}',
+                             'status': 'Содержит уязвимость'})
+
+    elif keywd == 'MIDDLEWARE_CLASSES':
+        for repos in unsafe_repos[keywd].keys():
+            if f"https://github.com/{user}/{repos}" not in analysis_dict.keys():
+                analysis_dict[f"https://github.com/{user}/{repos}"] = {'words': [], 'unsafe_modules': []}
+
+            if 'python' not in analysis_dict[f"https://github.com/{user}/{repos}"]['words']:
+                analysis_dict[f"https://github.com/{user}/{repos}"]['words'].append('python')
+            if 'django' not in analysis_dict[f"https://github.com/{user}/{repos}"]['words']:
+                analysis_dict[f"https://github.com/{user}/{repos}"]['words'].append('django')
+
+            for file_key in unsafe_repos[keywd][repos].keys():
+                time.sleep(0.5)
+                result = session.get(unsafe_repos[keywd][repos][file_key])  # download_url to variable
+                if "django.middleware.csrf.CsrfViewMiddleware" in result.text:
+                    code_lines = result.text.split('\n')
+                    for line in code_lines:
+                        if "#django.middleware.csrf.CsrfViewMiddleware" in line or ((line.find("django.middleware.csrf.CsrfViewMiddleware") > line.find("#")) and line.find("#") > -1):
                             analysis_dict[f"https://github.com/{user}/{repos}"]['unsafe_modules'].append(
                                 {'name': file_key,
-                                 'unsafe code type': 'В коде pickle.load принимает данные из стороннего источника',
-                                 'status': 'Содержит уязвимость'})
-                        else:
-                            analysis_dict[f"https://github.com/{user}/{repos}"]['unsafe_modules'].append(
-                                {'name': file_key, 'unsafe code type': 'В коде используется pickle',
+                                 'unsafe code type': 'В коде закомментирован csrf token',
                                  'status': 'Потенциально опасен'})
+                else:
+                    analysis_dict[f"https://github.com/{user}/{repos}"]['unsafe_modules'].append(
+                        {'name': file_key,
+                         'unsafe code type': 'В коде отключен csrf token',
+                         'status': 'Потенциально опасен'})
+
+    elif keywd == '@csrf_exempt':
+        for repos in unsafe_repos[keywd].keys():
+            if f"https://github.com/{user}/{repos}" not in analysis_dict.keys():
+                analysis_dict[f"https://github.com/{user}/{repos}"] = {'words': [], 'unsafe_modules': []}
+
+            if 'python' not in analysis_dict[f"https://github.com/{user}/{repos}"]['words']:
+                analysis_dict[f"https://github.com/{user}/{repos}"]['words'].append('python')
+            if 'django' not in analysis_dict[f"https://github.com/{user}/{repos}"]['words']:
+                analysis_dict[f"https://github.com/{user}/{repos}"]['words'].append('django')
+
+            for file_key in unsafe_repos[keywd][repos].keys():
+                time.sleep(0.5)
+                result = session.get(unsafe_repos[keywd][repos][file_key])  # download_url to variable
+                if "#@csrf_exempt" in result.text:
+                    break
+                else:
+                    analysis_dict[f"https://github.com/{user}/{repos}"]['unsafe_modules'].append(
+                        {'name': file_key,
+                         'unsafe code type': 'В коде локально отключен csrf token. В коде проекта используется декоратор @csrf_exempt',
+                         'status': 'Потенциально опасен'})
+
+pprint.pprint(json.dumps(analysis_dict, indent=4).encode(encoding="utf-8"))
+
+with open('analysis_dict.json', 'w', encoding='utf8') as json_file:
+    json.dump(analysis_dict, json_file, ensure_ascii=False, indent=4)
 #print(result.text)
 
 #result = session.get(item['download_url'])

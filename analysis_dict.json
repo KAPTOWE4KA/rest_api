@@ -1,0 +1,51 @@
+{
+    "https://github.com/KAPTOWE4KA/unsafe_examples": {
+        "words": [
+            "python",
+            "SQL",
+            "django"
+        ],
+        "unsafe_modules": [
+            {
+                "name": "eval_error.py",
+                "unsafe code type": "В коде eval принимает данные из стороннего источника",
+                "status": "Содержит уязвимость"
+            },
+            {
+                "name": "eval_warning.py",
+                "unsafe code type": "В коде используется eval",
+                "status": "Потенциально опасен"
+            },
+            {
+                "name": "sqlinjection_warning.py",
+                "unsafe code type": "В коде есть sql инъекция",
+                "status": "Потенциально опасен"
+            },
+            {
+                "name": "sqlinjection_error.py",
+                "unsafe code type": "В коде есть sql инъекция и прямой запрос к БД",
+                "status": "Содержит уязвимость"
+            },
+            {
+                "name": "pickle_warning_error.py",
+                "unsafe code type": "В коде используется pickle",
+                "status": "Потенциально опасен"
+            },
+            {
+                "name": "creditional_error.py",
+                "unsafe code type": "В коде явно указано поле email",
+                "status": "Содержит уязвимость"
+            },
+            {
+                "name": "creditional_error.py",
+                "unsafe code type": "В коде явно указано поле password",
+                "status": "Содержит уязвимость"
+            },
+            {
+                "name": "settings.py",
+                "unsafe code type": "В коде явно указано поле EMAIL_HOST_USER",
+                "status": "Содержит уязвимость"
+            }
+        ]
+    }
+}
