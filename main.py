@@ -1,12 +1,15 @@
 # Получим репозитории по параметрам
 import time
-
 import requests
 import pprint
 import json
+from flask import Flask, render_template, request
+from jinja2 import Template
+
+app = Flask(__name__)
 
 
-def split2(myline ,start, end):
+def split2(myline, start, end):
     res = ""
     recording = False
     for char in myline:
@@ -19,6 +22,7 @@ def split2(myline ,start, end):
             res += char
     return res
 
+
 def is_input_variable(variable, code_lns):
     for ln in code_lns:
         if variable in ln:
@@ -27,9 +31,9 @@ def is_input_variable(variable, code_lns):
     return False
 
 
-def main_feature():
+def main_feature(user='KAPTOWE4KA'):
     token_needed = False
-    user = 'KAPTOWE4KA'
+    #user = 'KAPTOWE4KA'
 
     # Получение репозиториев
 
@@ -63,7 +67,6 @@ def main_feature():
             print("Token used")
             session.auth = (user, token)
 
-
     danger_keywords = ['eval', 'sql', 'pickle', 'login', 'email', 'password', 'EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD', 'MIDDLEWARE_CLASSES', '@csrf_exempt']
 
     unsafe_repos = {}
@@ -75,6 +78,7 @@ def main_feature():
         search_result = session.get(url)
         if search_result.status_code != 200:
             print("Invalid response: ")
+            print(url)
             pprint.pprint(search_result.json())
             continue
         items = search_result.json()['items']
@@ -96,7 +100,6 @@ def main_feature():
                         unsafe_repos[keywd][item['repository']['name']][item['name']] = file_path_response.json()['download_url']
 
     print(json.dumps(unsafe_repos, indent=2))
-
 
     analysis_dict = {}
 
@@ -278,6 +281,63 @@ def main_feature():
     #file1 = open("newfile.py", "w", encoding="utf-8")
     #file1.write(result.text)
 
+
+@app.route("/", methods=['GET'])
+def index():
+    with open('templates/header.html', 'r', encoding='utf-8') as f:
+        header = f.read()
+    with open('templates/nav.html', 'r', encoding='utf-8') as f:
+        nav = f.read()
+    return render_template("index.html", cur_name="KAPTOWE4KA", header=header, nav=nav)
+
+
+@app.route("/", methods=['POST'])
+def index_post():
+    with open('templates/header.html', 'r', encoding='utf-8') as f:
+        header = f.read()
+    with open('templates/nav.html', 'r', encoding='utf-8') as f:
+        nav = f.read()
+    username = request.form['input_name']
+    if requests.get(f"https://github.com/{username}").status_code == 404:
+        is_found = False
+    else:
+        is_found = True
+    main_feature(username)
+    with open('analysis_dict.json', 'r', encoding='utf-8') as json_file:
+        newjs = json.load(json_file)
+    #pprint.pprint(newjs)
+    render_template("index.html",)
+    return render_template("modules.html", username=username, datajs=newjs, is_found=is_found, header=header, nav=nav)
+
+
+@app.route("/about/")
+def about():
+    with open('templates/header.html', 'r', encoding='utf-8') as f:
+        header = f.read()
+    with open('templates/nav.html', 'r', encoding='utf-8') as f:
+        nav = f.read()
+    return render_template("about.html", header=header, nav=nav)
+
+
+@app.route("/modules/")
+def modules():
+    with open('templates/header.html', 'r', encoding='utf-8') as f:
+        header = f.read()
+    with open('templates/nav.html', 'r', encoding='utf-8') as f:
+        nav = f.read()
+    return render_template("modules.html", header=header, nav=nav)
+
+
+@app.route("/products/")
+def products():
+    with open('templates/header.html', 'r', encoding='utf-8') as f:
+        header = f.read()
+    with open('templates/nav.html', 'r', encoding='utf-8') as f:
+        nav = f.read()
+    return render_template("products.html", header=header, nav=nav)
+
+
 if __name__ == "__main__":
     #main_feature()
+    app.run(host="192.168.0.177", port="80", debug=True)
     print("Over")
